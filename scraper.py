@@ -25,7 +25,7 @@ if data:
     pdf_link = "/source"    
     grouped_links = {}
 
-    for index, new in enumerate(news):
+    for new in news:
         date_element = new.find('td')
         link_element = new.find('a')
         

@@ -6,18 +6,16 @@ from langgraph.graph import StateGraph
 
 class AgentGraphState(TypedDict):
     loader: Optional[str] = None
-    scraper: Optional[dict[List[tuple]]] = None
-    retreiver: Optional[List[tuple]] = None
+    scraper: List[tuple] = None
 
 #Initialize the state
 state: AgentGraphState = {
     "loader": None,
-    "scraper": None,
-    "retreiver": None
+    "scraper": []
 }
     
 #Return the HTML of the target url using AI Jina Reader API
-def loader(state):
+def loader(state: AgentGraphState):
 
     api_url = "https://r.jina.ai/"  # Jina AI Reader API call
 
@@ -27,14 +25,18 @@ def loader(state):
     }
 
     target_url = 'gazettes.africa/gazettes/ke/2024'
+
     response = requests.get(api_url + target_url, headers=headers)
     state["loader"] = response.text
-    return state
-    
+    # Print the loader content to the console for debugging
+    #print("Loader content:", state["loader"])
+
+    return {"loader": state["loader"], "scraper": []}
 
 #Parses the HTML content to retreive the links
-def scraper(state):
+def scraper(state: AgentGraphState):
     if state["loader"]:
+        state["scraper"] = []
         html_content = state["loader"]
         soup = BeautifulSoup(html_content, 'html.parser')
         news = soup.find_all('tr')
@@ -42,7 +44,7 @@ def scraper(state):
         root_url = "https://gazettes.africa"
         pdf_link = "/source"    
 
-        for new in enumerate(news):
+        for new in news:
             date_element = new.find('td')
             link_element = new.find('a')
             
@@ -57,36 +59,40 @@ def scraper(state):
             else:
                 continue
 
+        #print("Scraper Content:", state["scraper"])
         return state
 
-
-#Displays the list of URL links
-def retreiver(state):
-    st.title("Extracted Links and Dates")  
-    for published_date, link, sub_link in state["scraper"]:          
-        st.write(f"Publish date: {published_date}")
-        st.write(f"Link: {link}")
-        st.write(f"PDF Link: {sub_link}")
-
-    return state
+# Retriever function to display the extracted data
+def retriever(state: AgentGraphState):
+    return state["scraper"]
 
 # Define the workflow
 workflow = StateGraph(AgentGraphState)
 
 workflow.add_node("Loader", loader)
 workflow.add_node("Scraper", scraper)
-workflow.add_node("Retreiver", retreiver)
+workflow.add_node("Retreiver", retriever)
+
 
 workflow.set_entry_point("Loader")
 workflow.add_edge("Loader", "Scraper")
-workflow.add_edge("Scraper","Retreiver")
+workflow.add_edge("Scraper", "Retreiver")
+
 
 app = workflow.compile()
 
-app.invoke()
+results = app.invoke(state)
 
+st.write("Extracted Links and Dates:")
+for published_date, link, sub_link in results:
+    st.write(f"Publish date: {published_date}")
+    st.write(f"Link: {link}")
+    st.write(f"PDF Link: {sub_link}")
+    st.write("---")
 
 if __name__ == "__main__":
-   pass
+    st.write("Workflow completed!")
+
+
 
     

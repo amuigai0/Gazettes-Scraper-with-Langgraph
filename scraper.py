@@ -55,10 +55,10 @@ if data:
         
 sorted_months = sorted(grouped_links.keys(), key=lambda m: min(date[0] for date in grouped_links[m])) 
 
-
+st.title("Kenya Gazettes Search")
 selected_month = st.selectbox("Selected month", sorted_months) 
      
-st.title(f"Gazettes for {selected_month}")
+st.header(f"Gazettes for {selected_month}")
 if selected_month in grouped_links:
     for date_obj, published_date, link, sub_link in grouped_links[selected_month]:
         st.write(f"Publish date: {published_date}")

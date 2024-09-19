@@ -4,4 +4,4 @@ A program that uses LangGraph Agents to extract Kenyan Gazettes from https://gaz
 
 # Running Program
 
-Install Streamlit using "pip install streamlit" and use the command "streamlit run scraper.py"
+Install Streamlit using "pip install streamlit" and use the command "streamlit run '.py file'"
